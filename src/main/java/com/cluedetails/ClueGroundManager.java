@@ -242,10 +242,9 @@ public class ClueGroundManager
 				.anyMatch(clueInstance -> clueInstance.getTileItem() == pendingGroundClue.getItem());
 		});
 
-		// Remove from pending clues. We will work them out when we're checking tiles for missing clues as well.
+		// If a tick has passed, and we've not associated the pending clue yet, mark it unknown
 		pendingGroundClues.removeIf(pendingGroundClue ->
 		{
-			// Include unknown clues, so we can still use them for relative despawn considerations
 			if (pendingGroundClue.getSpawnTick() < client.getTickCount())
 			{
 				ClueInstance groundClueInstance = new ClueInstance(
@@ -352,17 +351,15 @@ public class ClueGroundManager
 		// This means we don't need to worry about considering gaps where a clue has been taken from the middle of a stack.
 		for (int i = 0; i < sortedStoredClues.size() - 1; i++)
 		{
-			int currentStoredClueDiff = sortedStoredClues.get(i + 1).getTicksToDespawnConsideringTileItem(currentTick) - sortedStoredClues.get(i).getTicksToDespawnConsideringTileItem(currentTick);
+			int currentStoredClueDiff = sortedStoredClues.get(i + 1).getTimeToDespawnFromDataInTicks() - sortedStoredClues.get(i).getTimeToDespawnFromDataInTicks();
 			for (int j = 0; j < sortedGroundClues.size() - 1; j++)
 			{
 				int currentGroundClueDiff = sortedGroundClues.get(j + 1).getDespawnTime() - sortedGroundClues.get(j).getDespawnTime();
 				// Same diff, probs same thing
 				if (currentGroundClueDiff != currentStoredClueDiff) continue;
 				// If item will despawn later than the stored clue, it can't be it.
-				if (sortedGroundClues.get(j).getDespawnTime() > sortedStoredClues.get(i).getDespawnTick(currentTick))
-					continue;
-				if (sortedGroundClues.get(j + 1).getDespawnTime() > sortedStoredClues.get(i + 1).getDespawnTick(currentTick))
-					continue;
+				if (sortedGroundClues.get(j).getDespawnTime() > sortedStoredClues.get(i).getDespawnTick(currentTick)) continue;
+				if (sortedGroundClues.get(j + 1).getDespawnTime() > sortedStoredClues.get(i + 1).getDespawnTick(currentTick)) continue;
 
 				// Else assume it's right. Currently overwrites a few times but probs okay?
 				sortedStoredClues.get(i).setTileItem(sortedGroundClues.get(j));

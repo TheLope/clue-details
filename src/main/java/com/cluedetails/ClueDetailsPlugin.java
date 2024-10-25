@@ -258,6 +258,12 @@ public class ClueDetailsPlugin extends Plugin
 		clueInventoryManager.onGameTick();
 	}
 
+	/* This gets called when:
+	   Player logs in
+	   Player enters from outside 3 zones distance to 3 or closer (teleport in, run in)
+	   Player turns on plugin (and seems onItemSpawned is called for all existing items in scene, including
+	     ones outside the 3 zone limit which're rendered
+	 */
 	@Subscribe
 	public void onItemSpawned(ItemSpawned event)
 	{

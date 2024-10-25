@@ -26,6 +26,7 @@ package com.cluedetails;
 
 import java.util.List;
 import lombok.Data;
+import lombok.Getter;
 import lombok.Setter;
 import net.runelite.api.TileItem;
 import net.runelite.api.coords.WorldPoint;
@@ -38,6 +39,8 @@ public class ClueInstance
 	private List<Integer> clueIds; // Fake ID from ClueText
 	private final int itemId; // Clue item ID
 	private final WorldPoint location; // Null if in inventory
+
+	@Getter
 	private Integer timeToDespawnFromDataInTicks;
 	private TileItem tileItem;
 

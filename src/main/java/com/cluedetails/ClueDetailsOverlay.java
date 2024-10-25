@@ -52,6 +52,7 @@ import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.ItemDespawned;
 import net.runelite.api.events.ItemSpawned;
+import net.runelite.api.events.MenuOpened;
 import net.runelite.client.Notifier;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
@@ -179,14 +180,26 @@ public class ClueDetailsOverlay extends OverlayPanel
 
 		List<MenuEntryAndPos> entriesByTile = getEntriesByTile(currentMenuEntries);
 
-		if (config.changeClueText())
-		{
-			changeFloorText(entriesByTile);
-		}
-
 		if (config.showHoverText() && !config.changeClueText())
 		{
 			addTooltip(entriesByTile);
+		}
+	}
+
+	@Subscribe
+	public void onMenuOpened(MenuOpened event)
+	{
+		MenuEntry[] entries = event.getMenuEntries();
+		if (Arrays.stream(entries).noneMatch(this::isTakeClue))
+		{
+			return;
+		}
+
+		List<MenuEntryAndPos> entriesByTile = getEntriesByTile(entries);
+
+		if (config.changeClueText())
+		{
+			changeFloorText(entriesByTile);
 		}
 	}
 
@@ -199,6 +212,10 @@ public class ClueDetailsOverlay extends OverlayPanel
 			String newText = getText(entryAndPos);
 			if (newText == null || !isTakeOrMarkClue(menuEntry)) continue;
 			String regex = "Clue scroll \\(.*?\\)";
+			if (clueDetailsPlugin.isDeveloperMode())
+			{
+				regex = "(Daeyalt essence|Clue scroll \\(.*?\\))";
+			}
 
 			// Compile the pattern
 			Pattern pattern = Pattern.compile(regex);
@@ -295,6 +312,7 @@ public class ClueDetailsOverlay extends OverlayPanel
 				mappedEntries.add(new MenuEntryAndPos(menuEntries[i], menuEntries.length - i - 1, -1));
 			}
 		}
+
 		return mappedEntries;
 	}
 
@@ -379,6 +397,7 @@ public class ClueDetailsOverlay extends OverlayPanel
 		WorldPoint itemWp = WorldPoint.fromLocalInstance(client, itemLp);
 		List<ClueInstance> trackedClues = clueGroundManager.getGroundClues().get(itemWp);
 		if (trackedClues == null) return null;
+		// TODO: Fix, when a clue is picked up, posOnTile doesn't work any more. Needs shifting
 		ClueInstance clueInstance = trackedClues.get(entry.getPosOnTile());
 		if (clueInstance == null) return null;
 
