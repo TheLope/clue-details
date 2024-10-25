@@ -186,7 +186,9 @@ public interface ClueDetailsConfig extends Config
 		TOP(false, "Top"),
 		BOTTOM(false, "Bottom");
 
-		ClueTagLocation(Object selected, String displayName) {}
+		ClueTagLocation(Object selected, String displayName)
+		{
+		}
 	}
 
 	@ConfigItem(
@@ -373,6 +375,30 @@ public interface ClueDetailsConfig extends Config
 		position = 5
 	)
 	default boolean changeClueText()
+	{
+		return false;
+	}
+
+	@ConfigItem(
+		keyName = "groundItems",
+		name = "Show ground items text",
+		description = "Toggle whether to show ground items text for beginner and master clues",
+		section = overlaysSection,
+		position = 6
+	)
+	default boolean groundItems()
+	{
+		return false;
+	}
+
+	@ConfigItem(
+		keyName = "groundItemsDespawn",
+		name = "Show ground items despawn",
+		description = "Toggle whether to show ground items despawn timers for beginner and master clues",
+		section = overlaysSection,
+		position = 7
+	)
+	default boolean groundItemsDespawn()
 	{
 		return false;
 	}

@@ -27,6 +27,7 @@ package com.cluedetails;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
@@ -60,10 +61,12 @@ import net.runelite.client.ui.JagexColors;
 import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPanel;
 import net.runelite.client.ui.overlay.OverlayPosition;
+import net.runelite.client.ui.overlay.OverlayUtil;
 import net.runelite.client.ui.overlay.components.LineComponent;
 import net.runelite.client.ui.overlay.outline.ModelOutlineRenderer;
 import net.runelite.client.ui.overlay.tooltip.Tooltip;
 import net.runelite.client.ui.overlay.tooltip.TooltipManager;
+import org.apache.commons.text.WordUtils;
 
 public class ClueDetailsOverlay extends OverlayPanel
 {
@@ -130,7 +133,73 @@ public class ClueDetailsOverlay extends OverlayPanel
 
 		tileHighlights.keySet().forEach(tile -> checkAllTilesForHighlighting(tile, tileHighlights.get(tile)));
 
+		if (config.groundItems())
+		{
+			int OFFSET = 50;
+			Set<WorldPoint> wps = clueGroundManager.getGroundClues().keySet();
+			for (WorldPoint wp : wps)
+			{
+				if (clueGroundManager.getGroundClues().get(wp).isEmpty()) continue;
+				int a = 1;
+				int STRING_GAP = 15;
+				StringBuilder groundText = new StringBuilder();
+				List<ClueInstance> cluesOnTile = clueGroundManager.getGroundClues().get(wp);
+				LocalPoint lp = LocalPoint.fromWorld(client.getTopLevelWorldView(), wp);
+				if (lp == null) continue;
+
+				for (ClueInstance clue : cluesOnTile)
+				{
+					if (clue.getClueIds().isEmpty())
+					{
+						groundText.append("Unknown, read to track");
+					}
+					else
+					{
+						StringBuilder text = new StringBuilder();
+						int i = 0;
+						for (Integer clueId : clue.getClueIds())
+						{
+							Clues clueDetails = Clues.forClueId(clueId);
+							if (clueDetails != null)
+							{
+								String clueText;
+								if (config.changeClueText())
+								{
+									clueText = configManager.getConfiguration("clue-details-text", String.valueOf(clueId));
+								}
+								else
+								{
+									clueText = WordUtils.capitalizeFully(clueDetails.getClueTier().toString());
+								}
+								text.append(clueText);
+								if (i > 0) text.append(", ");
+							}
+							i++;
+						}
+						groundText.append(text);
+					}
+					if (config.groundItemsDespawn())
+					{
+						groundText.append(" - ");
+						groundText.append(clue.getDespawnTick(client.getTickCount()) - client.getTickCount());
+					}
+					drawText(graphics, lp, groundText.toString(), OFFSET + (a * STRING_GAP));
+					a++;
+					groundText.setLength(0);
+				}
+			}
+		}
+
 		return super.render(graphics);
+	}
+
+	private void drawText(Graphics2D graphics, LocalPoint lp, String text, int offset)
+	{
+		Point canvasTextLocation = Perspective.getCanvasTextLocation(client, graphics, lp, text, offset);
+		if (canvasTextLocation != null)
+		{
+			OverlayUtil.renderTextLocation(graphics, canvasTextLocation, text, Color.WHITE);
+		}
 	}
 
 	private void showHoveredItem()
