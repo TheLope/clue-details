@@ -1016,6 +1016,8 @@ public class Clues
 	final ClueTier clueTier;
 
 	@Getter
+	final WorldPoint location;
+	@Getter
 	final OrRequirement regions;
 
 	Clues(String clueDetail, int itemID, ClueTier clueTier, String clueText, List<WorldPoint> wps)
@@ -1025,6 +1027,7 @@ public class Clues
 		this.itemID = itemID;
 		this.clueTier = clueTier;
 		this.clueText = clueText;
+		this.location = wps.get(0);
 		this.regions = new OrRequirement(wps);
 	}
 
@@ -1035,6 +1038,7 @@ public class Clues
 		this.itemID = itemID;
 		this.clueTier = clueTier;
 		this.clueText = clueText;
+		this.location = wps.get(0);
 		this.regions = new OrRequirement(wps);
 	}
 

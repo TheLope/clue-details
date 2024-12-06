@@ -44,6 +44,8 @@ import net.runelite.api.widgets.InterfaceID;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetUtil;
 import net.runelite.client.config.ConfigManager;
+import net.runelite.client.eventbus.EventBus;
+import net.runelite.client.events.PluginMessage;
 import net.runelite.client.game.chatbox.ChatboxPanelManager;
 
 @Singleton
@@ -57,9 +59,10 @@ public class ClueInventoryManager
 	private final ChatboxPanelManager chatboxPanelManager;
 	private final Map<Integer, ClueInstance> trackedCluesInInventory = new HashMap<>();
 	private final Map<Integer, ClueInstance> previousTrackedCluesInInventory = new HashMap<>();
+	private final EventBus eventBus;
 
 	public ClueInventoryManager(Client client, ConfigManager configManager, ClueDetailsPlugin clueDetailsPlugin, ClueGroundManager clueGroundManager,
-	                            ClueBankManager clueBankManager, ChatboxPanelManager chatboxPanelManager)
+								ClueBankManager clueBankManager, ChatboxPanelManager chatboxPanelManager, EventBus eventBus)
 	{
 		this.client = client;
 		this.configManager = configManager;
@@ -67,6 +70,7 @@ public class ClueInventoryManager
 		this.clueGroundManager = clueGroundManager;
 		this.clueBankManager = clueBankManager;
 		this.chatboxPanelManager = chatboxPanelManager;
+		this.eventBus = eventBus;
 	}
 
 	public void updateInventory(ItemContainer inventoryContainer)
@@ -318,6 +322,24 @@ public class ClueInventoryManager
 						.build();
 				});
 		}
+
+		client.getMenu().createMenuEntry(-1)
+			.setOption("Shortest path")
+			.setTarget(entry.getTarget())
+			.setType(MenuAction.RUNELITE)
+			.onClick(e ->
+			{
+				Clues clue = Clues.forClueId(clueId);
+				if (clue == null)
+				{
+					System.out.println("Failed to find clue " + clueId);
+					return;
+				}
+
+				Map<String, Object> data = new HashMap<>();
+				data.put("target", clue.getLocation());
+				eventBus.post(new PluginMessage("shortestpath", "path", data));
+			});
 	}
 
 	public boolean isExamineClue(MenuEntry entry)

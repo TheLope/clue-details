@@ -152,7 +152,7 @@ public class ClueDetailsPlugin extends Plugin
 		cluePreferenceManager = new CluePreferenceManager(configManager);
 		clueGroundManager = new ClueGroundManager(client, configManager, this);
 		clueBankManager = new ClueBankManager(client, configManager, gson);
-		clueInventoryManager = new ClueInventoryManager(client, configManager, this, clueGroundManager, clueBankManager, chatboxPanelManager);
+		clueInventoryManager = new ClueInventoryManager(client, configManager, this, clueGroundManager, clueBankManager, chatboxPanelManager, eventBus);
 		clueBankManager.startUp(clueInventoryManager);
 
 		infoOverlay.startUp(this, clueGroundManager, clueInventoryManager);
