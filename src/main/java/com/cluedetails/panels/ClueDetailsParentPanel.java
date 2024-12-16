@@ -27,6 +27,7 @@ package com.cluedetails.panels;
 import com.cluedetails.*;
 import com.cluedetails.ClueDetailsConfig.*;
 
+import com.google.gson.Gson;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -42,6 +43,8 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import javax.swing.*;
@@ -49,12 +52,16 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import lombok.Getter;
+import net.runelite.api.ItemID;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.game.chatbox.ChatboxPanelManager;
+import net.runelite.client.plugins.grounditems.GroundItemsConfig;
+import net.runelite.client.plugins.inventorytags.InventoryTagsConfig;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.PluginPanel;
 import net.runelite.client.ui.components.IconTextField;
+import net.runelite.client.ui.components.colorpicker.RuneliteColorPicker;
 import net.runelite.client.util.ImageUtil;
 
 public class ClueDetailsParentPanel extends PluginPanel
@@ -77,6 +84,7 @@ public class ClueDetailsParentPanel extends PluginPanel
 
 	private CluePreferenceManager cluePreferenceManager;
 	private ClueDetailsSharingManager clueDetailsSharingManager;
+	private final ClueDetailsPlugin plugin;
 	private final ClueDetailsConfig config;
 
 	private final JScrollPane scrollableContainer;
@@ -110,7 +118,7 @@ public class ClueDetailsParentPanel extends PluginPanel
 	}
 
 	public ClueDetailsParentPanel(ConfigManager configManager, CluePreferenceManager cluePreferenceManager, ClueDetailsConfig config,
-								ChatboxPanelManager chatboxPanelManager, ClueDetailsSharingManager clueDetailsSharingManager)
+									ChatboxPanelManager chatboxPanelManager, ClueDetailsSharingManager clueDetailsSharingManager, ClueDetailsPlugin plugin)
 	{
 		super(false);
 
@@ -119,6 +127,7 @@ public class ClueDetailsParentPanel extends PluginPanel
 		this.config = config;
 		this.chatboxPanelManager = chatboxPanelManager;
 		this.clueDetailsSharingManager = clueDetailsSharingManager;
+		this.plugin = plugin;
 
 		setBackground(ColorScheme.DARK_GRAY_COLOR);
 		setLayout(new BorderLayout());
@@ -246,8 +255,8 @@ public class ClueDetailsParentPanel extends PluginPanel
 	{
 		JPopupMenu popupMenu = new JPopupMenu();
 
-		JMenuItem inputItem = new JMenuItem("Edit text for clue");
-		inputItem.addActionListener(event ->
+		JMenuItem inputTextItem = new JMenuItem("Edit text for clue");
+		inputTextItem.addActionListener(event ->
 		{
 			clueTableModel.setEditableRow(row);
 			clueTable.editCellAt(row, 0);
@@ -258,7 +267,47 @@ public class ClueDetailsParentPanel extends PluginPanel
 			}
 		});
 
-		popupMenu.add(inputItem);
+		popupMenu.add(inputTextItem);
+
+		JMenuItem inputColorItem = new JMenuItem("Edit color for clue");
+		inputColorItem.addActionListener(event ->
+		{
+			ListItem item = (ListItem) clueTableModel.getValueAt(row, 0);
+			Clues clue = item.getClue();
+
+			RuneliteColorPicker colorPicker = getColorPicker(clue.getDetailColor(configManager));
+			colorPicker.setOnColorChange(c ->
+			{
+				// Default color is white, so we don't need to store if user selects white
+				if (Objects.equals(c, Color.decode("#FFFFFF")))
+				{
+					configManager.unsetConfiguration("clue-details-color", String.valueOf(clue.getClueID()));
+				}
+				else
+				{
+					configManager.setConfiguration("clue-details-color", String.valueOf(clue.getClueID()), c);
+				}
+
+				int clueItemId = clue.getItemID();
+				if (clueItemId != ItemID.CLUE_SCROLL_BEGINNER && clueItemId != ItemID.CLUE_SCROLL_MASTER)
+				{
+					if (config.colorGroundItems())
+					{
+						configManager.setConfiguration(GroundItemsConfig.GROUP, "highlight_" + clueItemId, c);
+					}
+					if (config.colorInventoryTags())
+					{
+						Gson gson = new Gson();
+						configManager.setConfiguration(InventoryTagsConfig.GROUP, "tag_" + clueItemId,
+							gson.toJson(Map.of("color", c)));
+					}
+				}
+			});
+			colorPicker.setVisible(true);
+		});
+
+		popupMenu.add(inputColorItem);
+
 		popupMenu.show(e.getComponent(), e.getX(), e.getY());
 	}
 
@@ -559,5 +608,16 @@ public class ClueDetailsParentPanel extends PluginPanel
 	{
 		if (!config.onlyShowMarkedClues()) return true;
 		return cluePreferenceManager.getPreference(clue.getClueID());
+	}
+
+	private RuneliteColorPicker getColorPicker(Color color)
+	{
+		RuneliteColorPicker colorPicker = plugin.getColorPickerManager().create(
+			SwingUtilities.windowForComponent(this),
+			color,
+			"Edit Clue Detail Color",
+			true);
+		colorPicker.setLocationRelativeTo(this);
+		return colorPicker;
 	}
 }

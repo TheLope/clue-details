@@ -86,9 +86,15 @@ public class ClueDetailsWidgetOverlay extends OverlayPanel
 				ClueTier.HARD_CHALLENGE,
 				ClueTier.ELITE_CHALLENGE).contains(clue.getClueTier()))
 			{
+				Color color = TITLED_CONTENT_COLOR;
+				if (config.colorInventoryCluesOverlay())
+				{
+					color = clue.getDetailColor(configManager);
+				}
+
 				panelComponent.getChildren().add(LineComponent.builder()
 					.left(clue.getDetail(configManager))
-					.leftColor(TITLED_CONTENT_COLOR)
+					.leftColor(color)
 					.build());
 			}
 
@@ -100,9 +106,15 @@ public class ClueDetailsWidgetOverlay extends OverlayPanel
 				Clues cluePart = Clues.forClueId(clueId);
 				if (cluePart == null) continue;
 
+				Color color = TITLED_CONTENT_COLOR;
+				if (config.colorInventoryCluesOverlay())
+				{
+					color = cluePart.getDetailColor(configManager);
+				}
+
 				panelComponent.getChildren().add(LineComponent.builder()
 					.left(cluePart.getDetail(configManager))
-					.leftColor(TITLED_CONTENT_COLOR)
+					.leftColor(color)
 					.build());
 			}
 		}

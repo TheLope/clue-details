@@ -377,13 +377,13 @@ public class ClueInventoryManager
 	private boolean isUriMasterClue(Widget headModel)
 	{
 		if (headModel == null) return false;
-		return headModel.getModelId() == NpcID.URI_8638;
+		return headModel.getModelId() == NpcID.URI_7311;
 	}
 
 	private boolean isUriBeginnerClue(Widget headModel)
 	{
 		if (headModel == null) return false;
-		return headModel.getModelId() == NpcID.URI_7311;
+		return headModel.getModelId() == NpcID.URI_8638;
 	}
 
 	private boolean isUriStandardDialogue(Widget npcChat)

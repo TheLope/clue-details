@@ -59,12 +59,14 @@ public class ClueDetailsTagsOverlay extends WidgetItemOverlay
 		{
 			Clues clue = Clues.forItemId(itemId);
 			String clueDetail = null;
+			Color clueDetailColor = Color.WHITE;
 
 			if (clue != null
 				&& !(itemId >= InterfaceID.CLUE_BEGINNER_MAP_CHAMPIONS_GUILD
 					&& itemId <= InterfaceID.CLUE_BEGINNER_MAP_WIZARDS_TOWER))
 			{
 				clueDetail = clue.getDetail(configManager);
+				clueDetailColor = clue.getDetailColor(configManager);
 			}
 			// If clue can't be found by Clue ID, check if it can be found by Clue text
 			else
@@ -94,6 +96,7 @@ public class ClueDetailsTagsOverlay extends WidgetItemOverlay
 						}
 						text.append(clueDetails == null ? "error" : clueDetails.getClueText());
 						detail.append(clueDetails == null ? "error" : clueDetails.getDetail(configManager));
+						clueDetailColor = clueDetails.getDetailColor(configManager);
 						isFirst = false;
 					}
 
@@ -103,6 +106,7 @@ public class ClueDetailsTagsOverlay extends WidgetItemOverlay
 					{
 						threeStepCrypticClue.update(clueDetailsPlugin.getClueInventoryManager().getTrackedCluesInInventory());
 						clueDetail = threeStepCrypticClue.getDetail(configManager);
+						clueDetailColor = Color.WHITE;
 					}
 					else
 					{
@@ -110,7 +114,7 @@ public class ClueDetailsTagsOverlay extends WidgetItemOverlay
 					}
 				}
 			}
-			renderText(graphics, widgetItem.getCanvasBounds(), clueDetail);
+			renderText(graphics, widgetItem.getCanvasBounds(), clueDetail, clueDetailColor);
 		}
 	}
 
@@ -136,7 +140,7 @@ public class ClueDetailsTagsOverlay extends WidgetItemOverlay
 	}
 
 	// Render Clue Detail in the "Item Tag" style
-	private void renderText(Graphics2D graphics, Rectangle bounds, String clueDetail)
+	private void renderText(Graphics2D graphics, Rectangle bounds, String clueDetail, Color clueDetailColor)
 	{
 		if (clueDetail == null)
 		{
@@ -146,7 +150,11 @@ public class ClueDetailsTagsOverlay extends WidgetItemOverlay
 		graphics.setFont(FontManager.getRunescapeSmallFont());
 
 		final TextComponent textComponent = new TextComponent();
-		textComponent.setColor(Color.white);
+
+		if (config.colorInventoryClueTags())
+		{
+			textComponent.setColor(clueDetailColor);
+		}
 
 		String[] clueDetails = new String [] {clueDetail};
 		// Handle Three Step Cryptic Clues

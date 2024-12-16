@@ -376,4 +376,79 @@ public interface ClueDetailsConfig extends Config
 	{
 		return false;
 	}
+
+	@ConfigSection(name = "Overlay Colors", description = "Options that effect overlay colors", position = 5)
+	String overlayColorsSection = "Overlay Colors";
+
+	@ConfigItem(
+		keyName = "colorHoverText",
+		name = "Color hover text",
+		description = "Toggle whether apply clue details color to hover text",
+		section = overlayColorsSection,
+		position = 0
+	)
+	default boolean colorHoverText()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "colorInventoryClueTags",
+		name = "Color clue tags",
+		description = "Toggle whether apply clue details color to clue tags",
+		section = overlayColorsSection,
+		position = 1
+	)
+	default boolean colorInventoryClueTags()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "colorChangeClueText",
+		name = "Color clue item text",
+		description = "Toggle whether apply clue details color to clue item text",
+		section = overlayColorsSection,
+		position = 2
+	)
+	default boolean colorChangeClueText()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "colorInventoryCluesOverlay",
+		name = "Color clues overlay",
+		description = "Toggle whether apply clue details color to clues overlay",
+		section = overlayColorsSection,
+		position = 3
+	)
+	default boolean colorInventoryCluesOverlay()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "colorGroundItems",
+		name = "Apply colors to Ground Items",
+		description = "When updating clue details colors, apply the color to the Ground Items plugin. Does not supprt beginner and master clues",
+		section = overlayColorsSection,
+		position = 4
+	)
+	default boolean colorGroundItems()
+	{
+		return false;
+	}
+
+	@ConfigItem(
+		keyName = "colorInventoryTags",
+		name = "Apply colors to Inventory Tags",
+		description = "When updating clue details colors, apply the color to the Inventory Tags plugin. Does not supprt beginner and master clues",
+		section = overlayColorsSection,
+		position = 5
+	)
+	default boolean colorInventoryTags()
+	{
+		return false;
+	}
 }

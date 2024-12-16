@@ -27,6 +27,7 @@ package com.cluedetails;
 import com.cluedetails.filters.ClueTier;
 import com.cluedetails.filters.OrRequirement;
 import com.google.common.collect.ImmutableList;
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -790,7 +791,7 @@ public class Clues
 		new Clues("Oneiromancer: Talk", ItemID.CLUE_SCROLL_ELITE_12132, ClueTier.ELITE, null, List.of(new WorldPoint(2150, 3866, 0))),
 		new Clues("Old crone: Talk", ItemID.CLUE_SCROLL_ELITE_12138, ClueTier.ELITE, null, List.of(new WorldPoint(3462, 3557, 0))),
 		new Clues("Shadow dungeon: Emote", ItemID.CLUE_SCROLL_ELITE_12076, ClueTier.ELITE, null, List.of(new WorldPoint(2629, 5071, 0))),
-		new Clues("Unobtainable", ItemID.CLUE_SCROLL_ELITE_21524, ClueTier.ELITE, null, List.of(new WorldPoint(3689, 3830, 0))),
+		new Clues("Jardric: Talk", ItemID.CLUE_SCROLL_ELITE_21524, ClueTier.ELITE, null, List.of(new WorldPoint(3661, 3849, 0))),
 		new Clues("Mandrith: Talk", ItemID.CLUE_SCROLL_ELITE_12134, ClueTier.ELITE, null, List.of(new WorldPoint(3182, 3946, 0))),
 		new Clues("Fishing Platform: Emote", ItemID.CLUE_SCROLL_ELITE_12079, ClueTier.ELITE, null, List.of(new WorldPoint(2782, 3273, 0))),
 		new Clues("Kalphite Cave: Dig", ItemID.CLUE_SCROLL_ELITE_12158, ClueTier.ELITE, null, List.of(new WorldPoint(3307, 9505, 0))),
@@ -1011,6 +1012,7 @@ public class Clues
 
 	final String clueText;
 	final String clueDetail;
+	final Color clueDetailColor;
 	final int itemID;
 	final int clueID;
 	final ClueTier clueTier;
@@ -1024,6 +1026,7 @@ public class Clues
 	{
 		this.clueID = -1;
 		this.clueDetail = clueDetail;
+		this.clueDetailColor = Color.WHITE;
 		this.itemID = itemID;
 		this.clueTier = clueTier;
 		this.clueText = clueText;
@@ -1035,6 +1038,18 @@ public class Clues
 	{
 		this.clueID = clueID;
 		this.clueDetail = clueDetail;
+		this.clueDetailColor = Color.WHITE;
+		this.itemID = itemID;
+		this.clueTier = clueTier;
+		this.clueText = clueText;
+		this.regions = new OrRequirement(wps);
+	}
+
+	Clues(String clueDetail, Color clueDetailColor, int itemID, ClueTier clueTier, String clueText, List<WorldPoint> wps)
+	{
+		this.clueID = -1;
+		this.clueDetail = clueDetail;
+		this.clueDetailColor = clueDetailColor;
 		this.itemID = itemID;
 		this.clueTier = clueTier;
 		this.clueText = clueText;
@@ -1123,6 +1138,13 @@ public class Clues
 		String text = configManager.getConfiguration("clue-details-text", String.valueOf(getClueID()));
 		if (text != null) return text;
 		return getClueDetail();
+	}
+
+	public Color getDetailColor(ConfigManager configManager)
+	{
+		String colorCode = configManager.getConfiguration("clue-details-color", String.valueOf(getClueID()));
+		if (colorCode != null) return Color.decode(colorCode);
+		return getClueDetailColor();
 	}
 
 	public static boolean isClue(int itemId, boolean isDeveloperMode)

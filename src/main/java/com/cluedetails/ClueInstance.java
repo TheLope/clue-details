@@ -95,7 +95,7 @@ public class ClueInstance
 		return timeToDespawnFromDataInTicks == null ? -1 : timeToDespawnFromDataInTicks;
 	}
 
-	public String getCombinedClueText(ConfigManager configManager)
+	public String getCombinedClueText(ConfigManager configManager, boolean showColor)
 	{
 		StringBuilder returnText = new StringBuilder();
 		boolean isFirst = true;
@@ -111,6 +111,13 @@ public class ClueInstance
 			{
 				returnText.append("<br>");
 			}
+
+			if (showColor)
+			{
+				String color = Integer.toHexString(cluePart.getDetailColor(configManager).getRGB()).substring(2);
+				returnText.append("<col=").append(color).append(">");
+			}
+
 			returnText.append(cluePart.getDetail(configManager));
 		}
 		if (returnText.length() == 0) return "Unknown, read to track";

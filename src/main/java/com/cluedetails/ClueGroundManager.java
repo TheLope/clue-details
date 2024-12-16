@@ -348,28 +348,18 @@ public class ClueGroundManager
 		sortedGroundClues.removeIf((tileItem -> tileItem.getDespawnTime() > sortedStoredClues.get(sortedStoredClues.size() - 1).getDespawnTick(currentTick)));
 		sortedGroundClues.sort(Comparator.comparingInt(TileItem::getDespawnTime));
 
-		List<ClueInstance> foundClues = new ArrayList<>();
+		Map<Integer, List<TileItem>> groundItemsByItemID = sortedGroundClues.stream()
+			.collect(Collectors.groupingBy(TileItem::getId, LinkedHashMap::new, Collectors.toList()));
+		Map<Integer, List<ClueInstance>> sortedItemsByItemID = sortedStoredClues.stream()
+			.collect(Collectors.groupingBy(ClueInstance::getItemId, LinkedHashMap::new, Collectors.toList()));
 
-		// Need to loop diffs, and see matches in each.
-		// For items with the same ID, no matter what item you click in a stack, you will always pick up the first item dropped in the stack
-		// This means we don't need to worry about considering gaps where a clue has been taken from the middle of a stack.
-		for (int i = 0; i < sortedStoredClues.size() - 1; i++)
+		for (Integer itemID : groundItemsByItemID.keySet())
 		{
-			int currentStoredClueDiff = sortedStoredClues.get(i + 1).getTimeToDespawnFromDataInTicks() - sortedStoredClues.get(i).getTimeToDespawnFromDataInTicks();
-			for (int j = 0; j < sortedGroundClues.size() - 1; j++)
-			{
-				int currentGroundClueDiff = sortedGroundClues.get(j + 1).getDespawnTime() - sortedGroundClues.get(j).getDespawnTime();
-				// Same diff, probs same thing
-				if (currentGroundClueDiff != currentStoredClueDiff) continue;
-				// If item will despawn later than the stored clue, it can't be it.
-				if (sortedGroundClues.get(j).getDespawnTime() > sortedStoredClues.get(i).getDespawnTick(currentTick)) continue;
-				if (sortedGroundClues.get(j + 1).getDespawnTime() > sortedStoredClues.get(i + 1).getDespawnTick(currentTick)) continue;
-
-				// Else assume it's right. Currently overwrites a few times but probs okay?
-				sortedStoredClues.get(i).setTileItem(sortedGroundClues.get(j));
-				sortedStoredClues.get(i + 1).setTileItem(sortedGroundClues.get(j + 1));
-			}
+			if (sortedItemsByItemID.get(itemID) == null) continue;
+			findMatchingClues(sortedItemsByItemID.get(itemID), groundItemsByItemID.get(itemID));
 		}
+		
+		List<ClueInstance> foundClues = new ArrayList<>();
 
 		cluesOnTile.stream()
 			.map(tileItem -> sortedStoredClues.stream()
@@ -383,6 +373,36 @@ public class ClueGroundManager
 			.forEach(foundClues::add);
 
 		return foundClues;
+	}
+
+	private void findMatchingClues(List<ClueInstance> sortedStoredClues, List<TileItem> sortedGroundClues)
+	{
+		int currentTick = client.getTickCount();
+
+		// Need to loop diffs, and see matches in each.
+		// For items with the same ID, no matter what item you click in a stack, you will always pick up the first item dropped in the stack
+		// This means we don't need to worry about considering gaps where a clue has been taken from the middle of a stack.
+		int minGroundItemFound = 0;
+		for (int i = 0; i < sortedStoredClues.size() - 1; i++)
+		{
+			ClueInstance clueInstance1 = sortedStoredClues.get(i);
+			ClueInstance clueInstance2 = sortedStoredClues.get(i + 1);
+
+			TileItem groundClue1 = sortedGroundClues.get(minGroundItemFound);
+			TileItem groundClue2 = sortedGroundClues.get(minGroundItemFound + 1);
+
+			int currentStoredClueDiff = clueInstance2.getTimeToDespawnFromDataInTicks() - clueInstance1.getTimeToDespawnFromDataInTicks();
+			int currentGroundClueDiff = groundClue2.getDespawnTime() - groundClue1.getDespawnTime();
+
+			// Same diff, probs same thing
+			if (currentGroundClueDiff != currentStoredClueDiff) continue;
+			// If item will despawn later than the stored clue, it can't be it.
+			if (groundClue1.getDespawnTime() > clueInstance1.getDespawnTick(currentTick)) continue;
+			if (groundClue2.getDespawnTime() > clueInstance2.getDespawnTick(currentTick)) continue;
+			clueInstance1.setTileItem(groundClue1);
+			clueInstance2.setTileItem(groundClue2);
+			minGroundItemFound++;
+		}
 	}
 
 	private Tile getTileAtWorldPoint(WorldPoint tileWp)

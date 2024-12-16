@@ -83,10 +83,9 @@ public class ClueTableCellRenderer extends JPanel implements TableCellRenderer
 		else
 		{
 			Clues clue = item.getClue();
-			String displayText = clue.getDetail(configManager);
-			textArea.setText(displayText);
+			textArea.setText(clue.getDetail(configManager));
 			textArea.setBackground(clueDetailsParentPanel.getHoveredRow() == row ? ColorScheme.DARK_GRAY_HOVER_COLOR : ColorScheme.DARKER_GRAY_COLOR);
-			textArea.setForeground(ColorScheme.TEXT_COLOR);
+			textArea.setForeground(clue.getDetailColor(configManager));
 			textArea.setOpaque(true);
 
 			boolean isActive = cluePreferenceManager.getPreference(clue.getClueID());

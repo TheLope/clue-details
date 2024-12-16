@@ -105,7 +105,8 @@ public class ThreeStepCrypticClue
 			{
 				Clues clue = e.getKey();
 				String detail = clue.getDetail(configManager);
-				text.append(detail).append("<br>");
+				String color = Integer.toHexString(clue.getDetailColor(configManager).getRGB()).substring(2);
+				text.append("<col=").append(color).append(">").append(detail).append("<br>");
 			}
 		}
 		return text.toString();

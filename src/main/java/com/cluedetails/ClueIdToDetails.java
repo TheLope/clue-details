@@ -24,17 +24,32 @@
  */
 package com.cluedetails;
 
+import java.awt.Color;
 import lombok.Data;
 
 @Data
-public class ClueIdToText
+public class ClueIdToDetails
 {
 	int id;
 
 	String text;
-	public ClueIdToText(int id, String text)
+	public ClueIdToDetails(int id, String text)
 	{
 		this.text = text;
+		this.id = id;
+	}
+
+	Color color;
+	public ClueIdToDetails(int id, Color color)
+	{
+		this.color = color;
+		this.id = id;
+	}
+
+	public ClueIdToDetails(int id, String text, Color color)
+	{
+		this.text = text;
+		this.color = color;
 		this.id = id;
 	}
 }

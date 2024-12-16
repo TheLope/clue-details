@@ -60,6 +60,7 @@ import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
+import net.runelite.client.ui.components.colorpicker.ColorPickerManager;
 import net.runelite.client.ui.overlay.OverlayManager;
 import net.runelite.client.util.ImageUtil;
 
@@ -132,6 +133,10 @@ public class ClueDetailsPlugin extends Plugin
 	private CluePreferenceManager cluePreferenceManager;
 
 	@Getter
+	@Inject
+	private ColorPickerManager colorPickerManager;
+
+	@Getter
 	private ClueDetailsParentPanel panel;
 
 	private NavigationButton navButton;
@@ -160,7 +165,7 @@ public class ClueDetailsPlugin extends Plugin
 
 		final BufferedImage icon = ImageUtil.loadImageResource(getClass(), "/icon.png");
 
-		panel = new ClueDetailsParentPanel(configManager, cluePreferenceManager, config, chatboxPanelManager, clueDetailsSharingManager);
+		panel = new ClueDetailsParentPanel(configManager, cluePreferenceManager, config, chatboxPanelManager, clueDetailsSharingManager, this);
 		navButton = NavigationButton.builder()
 				.tooltip("Clue Details")
 				.icon(icon)
