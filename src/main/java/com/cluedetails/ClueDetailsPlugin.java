@@ -24,10 +24,15 @@
  */
 package com.cluedetails;
 
+import com.cluedetails.itemFilters.InventorySearchFilter;
+import com.cluedetails.itemFilters.SearchFilter;
 import com.cluedetails.panels.ClueDetailsParentPanel;
 import com.google.gson.Gson;
 import com.google.inject.Provides;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 import lombok.Getter;
@@ -41,6 +46,7 @@ import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.events.ItemDespawned;
 import net.runelite.api.events.ItemSpawned;
 import net.runelite.api.events.MenuEntryAdded;
+import net.runelite.api.events.ScriptPostFired;
 import net.runelite.api.events.WidgetLoaded;
 import net.runelite.api.widgets.ComponentID;
 import net.runelite.api.widgets.InterfaceID;
@@ -58,6 +64,7 @@ import net.runelite.client.game.ItemManager;
 import net.runelite.client.input.KeyManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.plugins.PluginManager;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.ui.components.colorpicker.ColorPickerManager;
@@ -72,6 +79,10 @@ import net.runelite.client.util.ImageUtil;
 )
 public class ClueDetailsPlugin extends Plugin
 {
+	public static final String CLUE_DETAILS_COMP_NAME = "Clue Details";
+	private static final int WIDGET_ID_CHATBOX_GE_SEARCH_RESULTS = 10616882;
+	private static final int SEARCH_BOX_LOADED_ID = 750;
+
 	@Inject
 	private Client client;
 
@@ -143,6 +154,14 @@ public class ClueDetailsPlugin extends Plugin
 
 	private boolean profileChanged;
 
+	@Inject
+	private InventorySearchFilter inventorySearchFilter;
+
+	@Inject
+	private PluginManager pluginManager;
+
+	private List<SearchFilter> filters;
+
 	@Override
 	protected void startUp() throws Exception
 	{
@@ -177,6 +196,12 @@ public class ClueDetailsPlugin extends Plugin
 		{
 			clientToolbar.addNavigation(navButton);
 		}
+
+		clientThread.invoke(() ->
+		{
+			loadFilters();
+			tryStartFilters();
+		});
 	}
 
 	@Override
@@ -194,6 +219,8 @@ public class ClueDetailsPlugin extends Plugin
 
 		clueGroundManager.saveStateToConfig();
 		clueBankManager.saveStateToConfig();
+
+		clientThread.invoke(this::stopFilters);
 	}
 
 	@Subscribe
@@ -326,5 +353,93 @@ public class ClueDetailsPlugin extends Plugin
 	ClueDetailsConfig provideConfig(ConfigManager configManager)
 	{
 		return configManager.getConfig(ClueDetailsConfig.class);
+	}
+
+	@Subscribe
+	public void onScriptPostFired(ScriptPostFired event)
+	{
+		if (event.getScriptId() == SEARCH_BOX_LOADED_ID)
+		{
+			clientThread.invoke(this::tryStartFilters);
+		}
+	}
+
+	private void loadFilters()
+	{
+		filters = new ArrayList<>();
+
+		if (isPluginEnabled())
+		{
+			filters.add(inventorySearchFilter);
+		}
+
+		registerFilterEvents();
+	}
+
+	private void tryStartFilters()
+	{
+		if (isSearchVisible())
+		{
+			startFilters();
+		}
+	}
+
+	private void startFilters()
+	{
+		final int horizontalSpacing = SearchFilter.ICON_SIZE + 5;
+		int xOffset = 0;
+
+		for (SearchFilter filter : filters)
+		{
+			filter.start(xOffset, 0);
+			xOffset += horizontalSpacing ;
+		}
+	}
+
+	private void stopFilters()
+	{
+		for (SearchFilter filter : filters)
+		{
+			filter.stop();
+		}
+
+		unregisterFilterEvents();
+	}
+
+	private void registerFilterEvents()
+	{
+		for (SearchFilter filter : filters)
+		{
+			eventBus.register(filter);
+		}
+	}
+
+	private void unregisterFilterEvents()
+	{
+		for (SearchFilter filter : filters)
+		{
+			eventBus.unregister(filter);
+		}
+	}
+
+	private boolean isPluginEnabled()
+	{
+		final Collection<Plugin> plugins = pluginManager.getPlugins();
+		for (Plugin plugin : plugins)
+		{
+			final String name = plugin.getName();
+			if (name.equals(ClueDetailsPlugin.CLUE_DETAILS_COMP_NAME))
+			{
+				return pluginManager.isPluginEnabled(plugin);
+			}
+		}
+
+		return false;
+	}
+
+	private boolean isSearchVisible()
+	{
+		final Widget widget = client.getWidget(WIDGET_ID_CHATBOX_GE_SEARCH_RESULTS);
+		return widget != null && !widget.isHidden();
 	}
 }
